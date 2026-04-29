@@ -17,7 +17,7 @@ export interface Movie {
   isFavorite?: boolean;
   createdAt?: string | null;
   updatedAt?: string | null;
-  // TODO (UD4 - Ejercicio): añadir rating?: number
+  rating?: number;
 }
 
 export interface MoviePayload {

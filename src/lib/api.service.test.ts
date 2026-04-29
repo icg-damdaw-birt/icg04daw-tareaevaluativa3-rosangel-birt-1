@@ -405,6 +405,69 @@ describe('API Service - Autenticación', () => {
       }
     });
   });
+
+  // ==========================================
+  // GRUPO: Rating
+  // ==========================================
+  describe('rateMovie', () => {
+    it('debería llamar a PATCH /api/movies/:id/rating con body rating', async () => {
+      // ARRANGE
+      authToken.set('valid-token');
+
+      const mockMovie = {
+        id: 'movie-1',
+        title: 'Inception',
+        director: 'Christopher Nolan',
+        year: 2010,
+        rating: 5,
+      };
+
+      (globalThis.fetch as any).mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        headers: {
+          get: (name: string) => name === 'content-type' ? 'application/json' : null
+        },
+        json: async () => mockMovie,
+      });
+
+      // ACT
+      const result = await api.rateMovie('movie-1', 5);
+
+      // ASSERT
+      expect(result).toEqual(mockMovie);
+      expect(globalThis.fetch).toHaveBeenCalledTimes(1);
+
+      const callArgs = (globalThis.fetch as any).mock.calls[0];
+      expect(callArgs[0]).toBe('http://localhost:3000/api/movies/movie-1/rating');
+      expect(callArgs[1].method).toBe('PATCH');
+      expect(callArgs[1].body).toBe(JSON.stringify({ rating: 5 }));
+    });
+
+    it('debería lanzar ApiError si el backend devuelve error', async () => {
+      // ARRANGE
+      authToken.set('valid-token');
+
+      (globalThis.fetch as any).mockResolvedValueOnce({
+        ok: false,
+        status: 400,
+        headers: {
+          get: (name: string) => name === 'content-type' ? 'application/json' : null
+        },
+        json: async () => ({ error: 'Rating inválido' }),
+      });
+
+      // ACT & ASSERT
+      try {
+        await api.rateMovie('movie-1', 7);
+        expect(true).toBe(false);
+      } catch (error) {
+        expect(error).toBeInstanceOf(ApiError);
+        expect((error as ApiError).status).toBe(400);
+        expect((error as ApiError).message).toBe('Rating inválido');
+      }
+    });
+  });
 });
 
 /**
