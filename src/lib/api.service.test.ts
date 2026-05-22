@@ -8,8 +8,15 @@
  */
 
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
+import { PUBLIC_API_URL } from '$env/static/public';
 import { api, ApiError } from './api.service';
 import { authToken } from './auth.store.svelte';
+
+const FALLBACK_API_URL = 'http://localhost:3000';
+const API_BASE_URL = (() => {
+  const base = (PUBLIC_API_URL ?? FALLBACK_API_URL).trim();
+  return base.endsWith('/') ? base.slice(0, -1) : base;
+})();
 
 // Mock de fetch global
 globalThis.fetch = vi.fn() as any;
@@ -71,7 +78,7 @@ describe('API Service - Autenticación', () => {
       
       // Verificamos la llamada a fetch
       const callArgs = (globalThis.fetch as any).mock.calls[0];
-      expect(callArgs[0]).toBe('http://localhost:3000/api/auth/login');
+      expect(callArgs[0]).toBe(`${API_BASE_URL}/api/auth/login`);
       expect(callArgs[1].method).toBe('POST');
       expect(callArgs[1].body).toBe(JSON.stringify({ email, password }));
     });
@@ -148,7 +155,7 @@ describe('API Service - Autenticación', () => {
       expect(globalThis.fetch).toHaveBeenCalledTimes(1);
       
       const callArgs = (globalThis.fetch as any).mock.calls[0];
-      expect(callArgs[0]).toBe('http://localhost:3000/api/auth/register');
+      expect(callArgs[0]).toBe(`${API_BASE_URL}/api/auth/register`);
       expect(callArgs[1].method).toBe('POST');
       expect(callArgs[1].body).toBe(JSON.stringify({ email, password }));
     });
@@ -206,7 +213,7 @@ describe('API Service - Autenticación', () => {
       expect(globalThis.fetch).toHaveBeenCalledTimes(1);
       
       const callArgs = (globalThis.fetch as any).mock.calls[0];
-      expect(callArgs[0]).toBe('http://localhost:3000/api/movies');
+      expect(callArgs[0]).toBe(`${API_BASE_URL}/api/movies`);
       expect(callArgs[1].method).toBe('GET');
       
       // Verificar que el header Authorization está presente
@@ -324,7 +331,7 @@ describe('API Service - Autenticación', () => {
       expect(globalThis.fetch).toHaveBeenCalledTimes(1);
 
       const callArgs = (globalThis.fetch as any).mock.calls[0];
-      expect(callArgs[0]).toBe('http://localhost:3000/api/movies/movie-1/favorite');
+      expect(callArgs[0]).toBe(`${API_BASE_URL}/api/movies/movie-1/favorite`);
       expect(callArgs[1].method).toBe('PATCH');
       expect(callArgs[1].body).toBeUndefined();
     });
